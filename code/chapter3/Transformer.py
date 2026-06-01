@@ -13,21 +13,21 @@ class MultiHeadAttention(nn.Module):
         
         self.d_model = d_model
         self.num_heads = num_heads
-        self.d_k = d_model // num_heads
+        self.d_k = d_model // num_heads # 每个头分到的维度
         
         # 定义 Q, K, V 和输出的线性变换层
-        self.W_q = nn.Linear(d_model, d_model)
+        self.W_q = nn.Linear(d_model, d_model) # 把原输入变成 Q
         self.W_k = nn.Linear(d_model, d_model)
         self.W_v = nn.Linear(d_model, d_model)
         self.W_o = nn.Linear(d_model, d_model)
         
     def scaled_dot_product_attention(self, Q, K, V, mask=None):
-        # 1. 计算注意力得分 (QK^T)
+        # 1. 计算注意力得分 (QK^T) 对应公式QK^T / sqrt(d_k)
         attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
         # 2. 应用掩码 (如果提供)
         if mask is not None:
-            # 将掩码中为 0 的位置设置为一个非常小的负数，这样 softmax 后会接近 0
+            # 将掩码中为 0 的位置设置为一个非常小的负数，这样 softmax 后会接近 0 不允许关注的位置，直接改成一个极小值。
             attn_scores = attn_scores.masked_fill(mask == 0, -1e9)
         
         # 3. 计算注意力权重 (Softmax)
@@ -38,12 +38,14 @@ class MultiHeadAttention(nn.Module):
         return output
         
     def split_heads(self, x):
+        # 把总维度切成多个头
         # 将输入 x 的形状从 (batch_size, seq_length, d_model)
         # 变换为 (batch_size, num_heads, seq_length, d_k)
         batch_size, seq_length, d_model = x.size()
         return x.view(batch_size, seq_length, self.num_heads, self.d_k).transpose(1, 2)
         
     def combine_heads(self, x):
+        # 把多个头再拼回来
         # 将输入 x 的形状从 (batch_size, num_heads, seq_length, d_k)
         # 变回 (batch_size, seq_length, d_model)
         batch_size, num_heads, seq_length, d_k = x.size()
