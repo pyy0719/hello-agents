@@ -39,7 +39,7 @@ def get_weather(city: str) -> str:
         # 检查响应状态码是否为200 (成功)
         response.raise_for_status() 
         # 解析返回的JSON数据
-        data = response.json()
+        data = response.json() # 把返回内容转成 Python 字典/列表
         
         # 提取当前天气状况
         current_condition = data['current_condition'][0]
@@ -144,7 +144,7 @@ import re
 # 请根据您使用的服务，将这里替换成对应的凭证和地址
 API_KEY = "sk-HE3BAxCEZYvdd0CA8a326cCdA8374aF6Bc57F372AdBf8dA3"
 BASE_URL = "https://aihubmix.com/v1"
-MODEL_ID = "coding-glm-5.1-free"
+MODEL_ID = "coding-glm-4.7-free"
 os.environ['TAVILY_API_KEY'] = "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"
 
 llm = OpenAICompatibleClient(
