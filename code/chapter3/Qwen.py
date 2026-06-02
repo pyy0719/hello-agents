@@ -1,15 +1,23 @@
-# 增加HF_ENDPOINT，避免Connection aborted. 
 import os
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+
+# 国内网络访问 Hugging Face 官方站点不稳定时，可以使用镜像。
+# 也可以在终端里自行覆盖，例如:
+# HF_ENDPOINT=https://huggingface.co python3 code/chapter3/Qwen.py
+os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # 指定模型ID
-model_id = "Qwen/Qwen1.5-0.5B-Chat"
+model_id = os.environ.get("MODEL_ID", "Qwen/Qwen1.5-0.5B-Chat")
 
-# 设置设备，优先使用GPU
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# 设置设备，优先使用 CUDA，其次使用 Apple Silicon 的 MPS，最后使用 CPU
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available():
+    device = "mps"
+else:
+    device = "cpu"
 print(f"Using device: {device}")
 
 # 加载分词器
@@ -23,7 +31,7 @@ print("模型和分词器加载完成！")
 # 准备对话输入
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": "你好，请介绍你自己。"}
+    {"role": "user", "content": "请判断下面这条商品评论的情感类别，并简要说明原因。情感类别只能从“正向、负向、中性、混合”中选择一个。评论：这款耳机音质确实不错，降噪也够用，但戴久了夹耳朵，而且续航没有宣传得那么久。"}
 ]
 
 # 使用分词器的模板格式化输入
@@ -43,7 +51,9 @@ print(model_inputs)
 # max_new_tokens 控制了模型最多能生成多少个新的Token
 generated_ids = model.generate(
     model_inputs.input_ids,
-    max_new_tokens=512
+    attention_mask=model_inputs.attention_mask,
+    max_new_tokens=128,
+    do_sample=False
 )
 
 # 将生成的 Token ID 截取掉输入部分
