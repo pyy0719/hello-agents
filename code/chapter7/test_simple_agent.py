@@ -8,7 +8,7 @@ from my_simple_agent import MySimpleAgent
 load_dotenv()
 
 # 创建LLM实例
-llm = HelloAgentsLLM()
+llm = HelloAgentsLLM(provider="deepseek")
 
 # 测试1：基础对话Agent（无工具）
 print("=== 测试1：基础对话 ===")
