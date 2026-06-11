@@ -51,36 +51,38 @@ def search(query: str) -> str:
 from typing import Dict, Any
 
 class ToolExecutor:
+    """
+    一个工具执行器，负责管理和执行工具。
+    """
     def __init__(self):
         self.tools: Dict[str, Dict[str, Any]] = {}
 
     def registerTool(self, name: str, description: str, func: callable):
         """
-        注册一个工具。
-        :param name: 工具名称，必须唯一
-        :param description: 工具描述，供模型参考
-        :param func: 执行工具的函数，接受一个字符串参数并返回字符串结果
+        向工具箱中注册一个新工具。
         """
         if name in self.tools:
-            raise ValueError(f"工具 '{name}' 已经注册过了。")
+            print(f"警告：工具 '{name}' 已存在，将被覆盖。")
+        
         self.tools[name] = {"description": description, "func": func}
-        print(f"工具 '{name}' 注册成功。")
+        print(f"工具 '{name}' 已注册。")
 
-    def getTool(self, name: str) -> callable :
+    def getTool(self, name: str) -> callable:
         """
-        获取工具的执行函数。
+        根据名称获取一个工具的执行函数。
         """
         return self.tools.get(name, {}).get("func")
-    
-    def getAvailableTools(self) -> Dict[str, str]:
+
+    def getAvailableTools(self) -> str:
         """
-        获取所有注册工具的名称和描述。
+        获取所有可用工具的格式化描述字符串。
         """
         return "\n".join([
             f"- {name}: {info['description']}" 
             for name, info in self.tools.items()
         ])
-    
+
+
 # --- 工具初始化与使用示例 ---
 if __name__ == '__main__':
     # 1. 初始化工具执行器
